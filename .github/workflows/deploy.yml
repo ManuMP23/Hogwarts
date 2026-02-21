@@ -33,15 +33,22 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Lowercase image name
-        run: echo "IMAGE_NAME=ghcr.io/${{ github.repository }}" | tr '[:upper:]' '[:lower:]' >> $GITHUB_ENV
+      # ✅ Forma segura de dejar el repo en minúsculas
+      - name: Set IMAGE_NAME
+        run: |
+          REPO="${GITHUB_REPOSITORY,,}"
+          echo "IMAGE_NAME=ghcr.io/$REPO" >> $GITHUB_ENV
+
+      # (Opcional pero útil) ver qué valor quedó
+      - name: Debug IMAGE_NAME
+        run: echo "IMAGE_NAME=${{ env.IMAGE_NAME }}"
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          tags: ${{ env.IMAGE_NAME }}:${{ github.run_number }}yttgg67y
+          tags: ${{ env.IMAGE_NAME }}:${{ github.run_number }}
 
       - name: Generate docker-compose.yml
         run: |
