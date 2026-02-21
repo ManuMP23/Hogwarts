@@ -33,13 +33,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # ✅ Forma segura de dejar el repo en minúsculas
+
       - name: Set IMAGE_NAME
         run: |
           REPO="${GITHUB_REPOSITORY,,}"
           echo "IMAGE_NAME=ghcr.io/$REPO" >> $GITHUB_ENV
 
-      # (Opcional pero útil) ver qué valor quedó
+
       - name: Debug IMAGE_NAME
         run: echo "IMAGE_NAME=${{ env.IMAGE_NAME }}"
 
