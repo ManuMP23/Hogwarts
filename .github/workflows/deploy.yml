@@ -33,12 +33,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-
-      - name: Set IMAGE_NAME
+      - name: Set IMAGE_NAME (lowercase)
         run: |
           REPO="${GITHUB_REPOSITORY,,}"
           echo "IMAGE_NAME=ghcr.io/$REPO" >> $GITHUB_ENV
-
 
       - name: Debug IMAGE_NAME
         run: echo "IMAGE_NAME=${{ env.IMAGE_NAME }}"
@@ -52,12 +50,22 @@ jobs:
 
       - name: Generate docker-compose.yml
         run: |
-          echo "services:" > docker-compose.yml
-          echo "  app:" >> docker-compose.yml
-          echo "    image: ${{ env.IMAGE_NAME }}:${{ github.run_number }}" >> docker-compose.yml
-          echo "    ports:" >> docker-compose.yml
-          echo "      - '80:8080'" >> docker-compose.yml
-          echo "    restart: always" >> docker-compose.yml
+          cat > docker-compose.yml << 'EOF'
+          services:
+            app:
+              image: ${IMAGE_NAME}:${GITHUB_RUN_NUMBER}
+              ports:
+                - "80:8080"
+              environment:
+                - SPRING_DATASOURCE_URL
+                - SPRING_DATASOURCE_USERNAME
+                - SPRING_DATASOURCE_PASSWORD
+              restart: always
+          EOF
+
+          # Sustituye variables del shell en el compose generado
+          sed -i "s|\${IMAGE_NAME}|${{ env.IMAGE_NAME }}|g" docker-compose.yml
+          sed -i "s|\${GITHUB_RUN_NUMBER}|${{ github.run_number }}|g" docker-compose.yml
 
       - name: Deploy to Elastic Beanstalk
         uses: einaregilsson/beanstalk-deploy@v21
